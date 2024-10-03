@@ -1,3 +1,4 @@
+# views.py
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.models import User
@@ -18,11 +19,15 @@ def login_user(request):
     username = data['userName']
     password = data['password']
     user = authenticate(username=username, password=password)
-    data = {"userName": username}
+    response_data = {"userName": username}
+
     if user is not None:
         login(request, user)
-        data = {"userName": username, "status": "Authenticated"}
-    return JsonResponse(data)
+        response_data["status"] = "Authenticated"
+    else:
+        response_data["status"] = "Authentication Failed"
+    
+    return JsonResponse(response_data)
 
 def logout_request(request):
     logout(request)
@@ -50,7 +55,7 @@ def get_dealerships(request):
     return JsonResponse({"dealerships": list(dealerships.values())})
 
 def get_dealer_reviews(request, dealer_id):
-    reviews = Review.objects.filter(dealer_id=dealer_id)
+    reviews = Review.objects.filter(dealership_id=dealer_id)
     return JsonResponse({"reviews": list(reviews.values())})
 
 def get_dealer_details(request, dealer_id):
@@ -60,11 +65,20 @@ def get_dealer_details(request, dealer_id):
 @csrf_exempt
 def add_review(request):
     if request.method == "POST":
+        if not request.user.is_authenticated:
+            return JsonResponse({"status": "error", "message": "User not authenticated"}, status=401)
+
         data = json.loads(request.body)
-        dealer_id = data['dealer_id']
-        review_text = data['review_text']
-        user = request.user
-        review = Review(dealer_id=dealer_id, user=user, review_text=review_text)
+        dealer_id = data.get('dealer_id')
+        review_text = data.get('review_text')
+
+        if not dealer_id or not review_text:
+            return JsonResponse({"status": "error", "message": "Missing dealer_id or review_text"}, status=400)
+
+        # Create and save the review
+        review = Review(dealership_id=dealer_id, user=request.user, review_text=review_text)
         review.save()
+
         return JsonResponse({"status": "success", "review": review_text})
-    return JsonResponse({"status": "error"}, status=400)
+
+    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=405)

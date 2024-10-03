@@ -4,9 +4,10 @@ from django.conf import settings
 from . import views
 
 app_name = 'djangoapp'
+
 urlpatterns = [
-    path('login/', view=views.login_user, name='login'),
-    path('logout/', view=views.logout_request, name='logout'),
-    path('register/', view=views.registration, name='register'),
-    path('get_cars/', view=views.get_cars, name='get_cars'),  # Add this line
+    path('login/', views.login_user, name='login'),
+    path('logout/', views.logout_request, name='logout'),
+    path('register/', views.registration, name='register'),
+    path('get_cars/', views.get_cars, name='get_cars'),  # Ensure this view is implemented in views.py
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
