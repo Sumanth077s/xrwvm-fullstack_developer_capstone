@@ -1,13 +1,23 @@
-# from django.contrib import admin
-# from .models import related models
+from django.contrib import admin
+from .models import CarMake, CarModel
 
+# CarModelInline class allows CarModel to be edited on the same page as CarMake
+class CarModelInline(admin.TabularInline):
+    model = CarModel
+    extra = 1  # Number of empty CarModel instances to display by default
 
-# Register your models here.
+# CarMakeAdmin class with CarModelInline, to show related CarModels inline
+class CarMakeAdmin(admin.ModelAdmin):
+    inlines = [CarModelInline]  # Show CarModel inline when editing CarMake
+    list_display = ('name', 'description')  # Customize the list view
+    search_fields = ['name']  # Add a search bar for the CarMake name
 
-# CarModelInline class
+# CarModelAdmin class to customize how CarModel objects are displayed in the admin
+class CarModelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'car_make', 'type', 'year', 'dealer_id')
+    list_filter = ['type', 'year']  # Add filters to the CarModel list view
+    search_fields = ['name']  # Add a search bar for the CarModel name
 
-# CarModelAdmin class
-
-# CarMakeAdmin class with CarModelInline
-
-# Register models here
+# Register models with the Django admin site
+admin.site.register(CarMake, CarMakeAdmin)
+admin.site.register(CarModel, CarModelAdmin)
